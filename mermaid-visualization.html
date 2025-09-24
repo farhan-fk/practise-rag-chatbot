@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Chatbot Flow Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.2em;
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            cursor: pointer;
+            background: #f8f9fa;
+            border: none;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .tab:hover {
+            background: #e9ecef;
+        }
+        
+        .tab.active {
+            background: white;
+            border-bottom: 3px solid #4facfe;
+            color: #4facfe;
+        }
+        
+        .diagram-container {
+            padding: 40px;
+            text-align: center;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .diagram {
+            display: none;
+        }
+        
+        .diagram.active {
+            display: block;
+        }
+        
+        .diagram h2 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+            font-weight: 400;
+        }
+        
+        .mermaid {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .description {
+            background: #f8f9fa;
+            border-left: 4px solid #4facfe;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+            text-align: left;
+        }
+        
+        .description h3 {
+            color: #2c3e50;
+            margin-top: 0;
+        }
+        
+        .description ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .description li {
+            margin: 8px 0;
+            color: #555;
+        }
+        
+        .controls {
+            text-align: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 0 10px;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+        
+        .zoom-controls {
+            margin-top: 15px;
+        }
+        
+        .zoom-controls button {
+            background: #6c757d;
+            margin: 0 5px;
+            padding: 8px 16px;
+        }
+        
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .diagram-container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 RAG Chatbot System Flow</h1>
+            <p>Interactive visualization of query processing from frontend to backend</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showDiagram('data-flow')">Data Flow Architecture</button>
+            <button class="tab" onclick="showDiagram('sequence')">Sequence Diagram</button>
+            <button class="tab" onclick="showDiagram('component')">Component Interaction</button>
+            <button class="tab" onclick="showDiagram('error-flow')">Error Handling</button>
+        </div>
+        
+        <div class="diagram-container">
+            <!-- Data Flow Architecture -->
+            <div id="data-flow" class="diagram active">
+                <h2>📊 Data Flow Architecture</h2>
+                <div class="mermaid">
+                    flowchart LR
+                        subgraph Input ["📥 Input Processing"]
+                            A[User Query] --> B[Session Context]
+                            B --> C[AI Prompt Construction]
+                        end
+
+                        subgraph Processing ["⚙️ Core Processing"]
+                            C --> D{Tool Required?}
+                            D -->|Yes| E[Semantic Search]
+                            D -->|No| F[Direct Response]
+                            E --> G[Vector Similarity]
+                            G --> H[Course Resolution]
+                            H --> I[Context Retrieval]
+                            I --> J[Response Generation]
+                            F --> J
+                        end
+
+                        subgraph Output ["📤 Output Assembly"]
+                            J --> K[Source Attribution]
+                            K --> L[Session Update]
+                            L --> M[JSON Response]
+                        end
+
+                        subgraph Storage ["💾 Storage Layer"]
+                            N[(ChromaDB<br/>Vector Store)] -.-> G
+                            O[(Session Store<br/>Conversation History)] -.-> B
+                            O -.-> L
+                        end
+
+                        style A fill:#bbdefb
+                        style M fill:#c8e6c9
+                        style N fill:#ffe0b2
+                        style O fill:#f8bbd9
+                </div>
+                <div class="description">
+                    <h3>🎯 Key Features</h3>
+                    <ul>
+                        <li><strong>Input Processing:</strong> User queries are captured and contextualized</li>
+                        <li><strong>Smart Processing:</strong> AI decides whether to search or respond directly</li>
+                        <li><strong>Vector Search:</strong> Semantic similarity matching in ChromaDB</li>
+                        <li><strong>Output Assembly:</strong> Response generation with source attribution</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Sequence Diagram -->
+            <div id="sequence" class="diagram">
+                <h2>🔄 Detailed Sequence Flow</h2>
+                <div class="mermaid">
+                    sequenceDiagram
+                        participant User as 👤 User
+                        participant Frontend as 🌐 Frontend
+                        participant FastAPI as 🚀 FastAPI
+                        participant RAG as 🧠 RAG System
+                        participant AI as 🤖 AI Generator
+                        participant Tools as 🔧 Tool Manager
+                        participant Vector as 🗄️ Vector Store
+                        participant Session as 📝 Session Manager
+
+                        User->>Frontend: Types query & clicks send
+                        Frontend->>Frontend: Show loading, disable input
+                        Frontend->>FastAPI: POST /api/query
+                        
+                        FastAPI->>RAG: Forward query with session_id
+                        RAG->>Session: Get conversation history
+                        Session-->>RAG: Return previous messages
+                        
+                        RAG->>AI: Call generate_response()
+                        AI->>AI: Build system prompt + context
+                        AI->>AI: Call Claude API with tools
+                        
+                        Note over AI: Claude decides to use search tool
+                        AI->>Tools: Execute search_course_content
+                        Tools->>Vector: Call search() method
+                        Vector->>Vector: Semantic search in ChromaDB
+                        Vector-->>Tools: Return formatted results
+                        Tools-->>AI: Return tool execution results
+                        
+                        AI->>AI: Generate final response with context
+                        AI-->>RAG: Return generated response
+                        
+                        RAG->>Session: Store conversation exchange
+                        RAG-->>FastAPI: Return (response, sources)
+                        FastAPI-->>Frontend: Return JSON response
+                        
+                        Frontend->>Frontend: Render AI response
+                        Frontend->>Frontend: Add sources, re-enable input
+                        Frontend-->>User: Display complete response
+                </div>
+                <div class="description">
+                    <h3>⏱️ Timeline Breakdown</h3>
+                    <ul>
+                        <li><strong>Frontend:</strong> Captures user input and manages UI state</li>
+                        <li><strong>API Layer:</strong> Routes requests and manages sessions</li>
+                        <li><strong>RAG Processing:</strong> Orchestrates AI and search tools</li>
+                        <li><strong>Response Assembly:</strong> Generates final response with sources</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Component Interaction -->
+            <div id="component" class="diagram">
+                <h2>🔗 Component Interaction Matrix</h2>
+                <div class="mermaid">
+                    graph LR
+                        subgraph Components ["System Components"]
+                            FE[🌐 Frontend<br/>JavaScript]
+                            API[🚀 FastAPI<br/>Python]
+                            RAG[🧠 RAG System<br/>Orchestrator]
+                            AI[🤖 AI Generator<br/>Claude API]
+                            TOOLS[🔧 Search Tools<br/>Course Search]
+                            VS[🗄️ Vector Store<br/>ChromaDB]
+                            SM[📝 Session Manager<br/>Memory]
+                        end
+
+                        FE <-->|HTTP JSON| API
+                        API <-->|Function Calls| RAG
+                        RAG <-->|Query Processing| AI
+                        RAG <-->|Tool Management| TOOLS
+                        RAG <-->|Session Tracking| SM
+                        AI <-->|Tool Execution| TOOLS
+                        TOOLS <-->|Semantic Search| VS
+                        SM <-->|History Storage| VS
+
+                        classDef frontend fill:#e3f2fd
+                        classDef backend fill:#f3e5f5
+                        classDef ai fill:#fff8e1
+                        classDef data fill:#e8f5e8
+
+                        class FE frontend
+                        class API,RAG backend
+                        class AI,TOOLS ai
+                        class VS,SM data
+                </div>
+                <div class="description">
+                    <h3>🏗️ Architecture Layers</h3>
+                    <ul>
+                        <li><strong>Frontend Layer:</strong> User interface and interaction management</li>
+                        <li><strong>Backend Layer:</strong> API routing and business logic orchestration</li>
+                        <li><strong>AI Layer:</strong> Natural language processing and tool execution</li>
+                        <li><strong>Data Layer:</strong> Vector storage and session management</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Error Handling Flow -->
+            <div id="error-flow" class="diagram">
+                <h2>⚠️ Error Handling Flow</h2>
+                <div class="mermaid">
+                    flowchart TD
+                        A[User Query] --> B{Frontend Validation}
+                        B -->|Invalid| C[Show Error Message]
+                        B -->|Valid| D[Send to Backend]
+                        
+                        D --> E{API Validation}
+                        E -->|Invalid| F[Return 400 Error]
+                        E -->|Valid| G[Process with RAG]
+                        
+                        G --> H{RAG Processing}
+                        H -->|Error| I[Return 500 Error]
+                        H -->|Success| J{Tool Execution}
+                        
+                        J -->|Tool Error| K[Return Error Message]
+                        J -->|Success| L{Vector Search}
+                        
+                        L -->|No Results| M[Return "No content found"]
+                        L -->|Success| N[Generate Response]
+                        
+                        F --> O[Frontend Error Display]
+                        I --> O
+                        K --> O
+                        C --> P[User Sees Error]
+                        M --> Q[User Sees No Results Message]
+                        N --> R[User Sees Successful Response]
+                        O --> P
+
+                        classDef error fill:#ffebee
+                        classDef success fill:#e8f5e8
+                        classDef warning fill:#fff3e0
+
+                        class C,F,I,K,O,P error
+                        class N,R success
+                        class M,Q warning
+                </div>
+                <div class="description">
+                    <h3>🛡️ Error Resilience</h3>
+                    <ul>
+                        <li><strong>Input Validation:</strong> Frontend checks for empty queries</li>
+                        <li><strong>API Validation:</strong> Backend validates request format</li>
+                        <li><strong>Processing Errors:</strong> Graceful handling of AI/search failures</li>
+                        <li><strong>User Feedback:</strong> Clear error messages at each layer</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn" onclick="exportDiagram()">📄 Export Current Diagram</button>
+            <button class="btn" onclick="fullscreen()">🔍 Full Screen</button>
+            <button class="btn" onclick="resetZoom()">🔄 Reset View</button>
+            
+            <div class="zoom-controls">
+                <button class="btn" onclick="zoomIn()">🔍+ Zoom In</button>
+                <button class="btn" onclick="zoomOut()">🔍- Zoom Out</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'cardinal'
+            },
+            sequence: {
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35
+            }
+        });
+
+        let currentZoom = 1;
+
+        function showDiagram(diagramId) {
+            // Hide all diagrams
+            document.querySelectorAll('.diagram').forEach(d => d.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            // Show selected diagram
+            document.getElementById(diagramId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function exportDiagram() {
+            const activeTab = document.querySelector('.tab.active').textContent;
+            alert(`🎯 Export functionality would save the current diagram: "${activeTab}"\n\nTo implement:\n• Right-click on diagram → Save image\n• Use browser print → Save as PDF\n• Copy diagram code for sharing`);
+        }
+
+        function fullscreen() {
+            const container = document.querySelector('.diagram-container');
+            if (container.requestFullscreen) {
+                container.requestFullscreen();
+            } else if (container.webkitRequestFullscreen) {
+                container.webkitRequestFullscreen();
+            } else if (container.msRequestFullscreen) {
+                container.msRequestFullscreen();
+            }
+        }
+
+        function zoomIn() {
+            currentZoom += 0.1;
+            applyZoom();
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(0.5, currentZoom - 0.1);
+            applyZoom();
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            document.querySelectorAll('.mermaid').forEach(diagram => {
+                diagram.style.transform = `scale(${currentZoom})`;
+                diagram.style.transformOrigin = 'center center';
+            });
+        }
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case '=':
+                    case '+':
+                        e.preventDefault();
+                        zoomIn();
+                        break;
+                    case '-':
+                        e.preventDefault();
+                        zoomOut();
+                        break;
+                    case '0':
+                        e.preventDefault();
+                        resetZoom();
+                        break;
+                }
+            }
+            
+            // Tab navigation
+            if (e.key >= '1' && e.key <= '4') {
+                const tabs = ['data-flow', 'sequence', 'component', 'error-flow'];
+                const index = parseInt(e.key) - 1;
+                if (tabs[index]) {
+                    showDiagram(tabs[index]);
+                    document.querySelectorAll('.tab')[index].classList.add('active');
+                }
+            }
+        });
+
+        // Auto-refresh diagrams when switching tabs
+        document.querySelectorAll('.tab').forEach((tab, index) => {
+            tab.addEventListener('click', function() {
+                setTimeout(() => {
+                    mermaid.init();
+                }, 100);
+            });
+        });
+
+        // Welcome message
+        console.log(`
+        🎉 RAG Chatbot Visualization Loaded!
+        
+        ⌨️  Keyboard Shortcuts:
+        • Ctrl/Cmd + Plus: Zoom In
+        • Ctrl/Cmd + Minus: Zoom Out  
+        • Ctrl/Cmd + 0: Reset Zoom
+        • 1-4: Switch between tabs
+        
+        🖱️  Mouse Controls:
+        • Click tabs to switch diagrams
+        • Use control buttons for zoom/export
+        • Right-click diagrams to save images
+        `);
+    </script>
+</body>
+</html>
