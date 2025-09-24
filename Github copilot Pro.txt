@@ -1,0 +1,34 @@
+
+# fork the code in your repository and work in your repo
+# Give me an overview of the Codebase
+
+# How are These Documents Processed
+
+# Trace The Process of Handling user's query from front end to backend
+
+# Draw a diagram that Illustrates This flow
+
+# Then ask for Mermaid Visualisation
+
+# Then ask for Web Visualisation
+
+# How do i run this application
+
+# add and commit changes
+
+
+Now Lets work on Adding Features to Our code
+
+# Feature one: There is Source references, but it would have been better, if we could refer these course and make these links clickable
+
+Prompt:The chat interface should display query responses with source citations, where each source is a clickable link that opens the corresponding lesson video in a new tab. To achieve this:
+
+Update @backend/document_processor.py so that when courses are split into chunks, the lesson link from the course_catalog collection is stored.
+
+Modify _format_results in @backend/search_tools.py to include these lesson links in the response.
+
+Ensure the links are embedded invisibly (no raw URLs should appear in the text).
+
+Do not do anything, verify this first and share ur findings
+
+

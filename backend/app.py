@@ -11,6 +11,7 @@ import os
 
 from config import config
 from rag_system import RAGSystem
+from web_browser_tool import web_browser_tool
 
 # Initialize FastAPI app
 app = FastAPI(title="Course Materials RAG System", root_path="")
@@ -40,11 +41,31 @@ class QueryRequest(BaseModel):
     query: str
     session_id: Optional[str] = None
 
+class SourceInfo(BaseModel):
+    """Source information with title and optional URL"""
+    title: str
+    url: Optional[str] = None
+
 class QueryResponse(BaseModel):
     """Response model for course queries"""
     answer: str
-    sources: List[str]
+    sources: List[SourceInfo]
     session_id: str
+
+class WebBrowseRequest(BaseModel):
+    """Request model for web browsing"""
+    url: str
+    extract_content: bool = True
+    search_terms: Optional[List[str]] = None
+
+class WebBrowseResponse(BaseModel):
+    """Response model for web browsing"""
+    success: bool
+    url: Optional[str] = None
+    title: Optional[str] = None
+    content: Optional[str] = None
+    links: Optional[List[Dict[str, str]]] = None
+    error: Optional[str] = None
 
 class CourseStats(BaseModel):
     """Response model for course statistics"""
@@ -65,9 +86,21 @@ async def query_documents(request: QueryRequest):
         # Process query using RAG system
         answer, sources = rag_system.query(request.query, session_id)
         
+        # Convert sources to SourceInfo objects
+        source_objects = []
+        for source in sources:
+            if isinstance(source, dict):
+                source_objects.append(SourceInfo(
+                    title=source.get("title", "Unknown Source"),
+                    url=source.get("url")
+                ))
+            else:
+                # Fallback for string sources (backward compatibility)
+                source_objects.append(SourceInfo(title=str(source)))
+        
         return QueryResponse(
             answer=answer,
-            sources=sources,
+            sources=source_objects,
             session_id=session_id
         )
     except Exception as e:
@@ -85,10 +118,63 @@ async def get_course_stats():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/web/browse", response_model=WebBrowseResponse)
+async def browse_web_content(request: WebBrowseRequest):
+    """Browse web content using Playwright MCP"""
+    try:
+        if request.search_terms:
+            result = await web_browser_tool.search_content(request.url, request.search_terms)
+        else:
+            result = await web_browser_tool.browse_url(request.url, request.extract_content)
+        
+        if result.get("success"):
+            return WebBrowseResponse(
+                success=True,
+                url=result.get("url"),
+                title=result.get("title"),
+                content=result.get("content"),
+                links=result.get("links")
+            )
+        else:
+            return WebBrowseResponse(
+                success=False,
+                error=result.get("error", "Unknown error occurred")
+            )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/web/extract-course")
+async def extract_course_content(request: WebBrowseRequest):
+    """Extract structured course content from URL"""
+    try:
+        result = await web_browser_tool.extract_course_content(request.url)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/api/session/{session_id}")
+async def delete_session(session_id: str):
+    """Delete a specific session and its history"""
+    try:
+        rag_system.session_manager.delete_session(session_id)
+        return {"message": "Session deleted successfully", "session_id": session_id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.on_event("startup")
 async def startup_event():
-    """Load initial documents on startup"""
-    docs_path = "../docs"
+    """Load initial documents on startup and initialize web browser"""
+    # Initialize web browser tool
+    try:
+        await web_browser_tool.initialize()
+        print("Web browser tool initialized successfully")
+    except Exception as e:
+        print(f"Warning: Could not initialize web browser tool: {e}")
+    
+    # Load documents
+    import os
+    docs_path = os.path.join(os.path.dirname(__file__), "..", "docs")
+    print(f"Looking for docs at: {docs_path}")
     if os.path.exists(docs_path):
         print("Loading initial documents...")
         try:
@@ -96,6 +182,17 @@ async def startup_event():
             print(f"Loaded {courses} courses with {chunks} chunks")
         except Exception as e:
             print(f"Error loading documents: {e}")
+    else:
+        print(f"Docs path not found: {docs_path}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean up resources on shutdown"""
+    try:
+        await web_browser_tool.close()
+        print("Web browser tool cleaned up")
+    except Exception as e:
+        print(f"Error during web browser cleanup: {e}")
 
 # Custom static file handler with no-cache headers for development
 from fastapi.staticfiles import StaticFiles
@@ -116,4 +213,11 @@ class DevStaticFiles(StaticFiles):
     
     
 # Serve static files for the frontend
-app.mount("/", StaticFiles(directory="../frontend", html=True), name="static")
+import os
+frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+app.mount("/", StaticFiles(directory=frontend_path, html=True), name="static")
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)

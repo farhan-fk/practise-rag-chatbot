@@ -100,11 +100,19 @@ class CourseSearchTool(Tool):
                 header += f" - Lesson {lesson_num}"
             header += "]"
             
-            # Track source for the UI
-            source = course_title
+            # Track source with URL for the UI
+            source_title = course_title
             if lesson_num is not None:
-                source += f" - Lesson {lesson_num}"
-            sources.append(source)
+                source_title += f" - Lesson {lesson_num}"
+            
+            # Get lesson URL from course metadata
+            lesson_url = self._get_lesson_url(course_title, lesson_num)
+            
+            source_obj = {
+                "title": source_title,
+                "url": lesson_url
+            }
+            sources.append(source_obj)
             
             formatted.append(f"{header}\n{doc}")
         
@@ -112,6 +120,42 @@ class CourseSearchTool(Tool):
         self.last_sources = sources
         
         return "\n\n".join(formatted)
+    
+    def _get_lesson_url(self, course_title: str, lesson_num: Optional[int]) -> Optional[str]:
+        """Get the lesson URL from course metadata"""
+        import json
+        
+        if not lesson_num:
+            return None
+            
+        try:
+            # Query course catalog for course metadata
+            course_results = self.store.course_catalog.get(
+                ids=[course_title]
+            )
+            
+            if not course_results['metadatas'] or not course_results['metadatas'][0]:
+                return None
+                
+            metadata = course_results['metadatas'][0]
+            lessons_json = metadata.get('lessons_json')
+            
+            if not lessons_json:
+                return None
+                
+            # Parse lessons metadata
+            lessons_data = json.loads(lessons_json)
+            
+            # Find the specific lesson
+            for lesson_data in lessons_data:
+                if lesson_data.get('lesson_number') == lesson_num:
+                    return lesson_data.get('lesson_link')
+                    
+            return None
+            
+        except Exception as e:
+            print(f"Error getting lesson URL for {course_title} lesson {lesson_num}: {e}")
+            return None
 
 class ToolManager:
     """Manages available tools for the AI"""
